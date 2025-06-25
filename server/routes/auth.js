@@ -3,19 +3,19 @@ import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
-// Mock users data - in a real app, this would be in a database with hashed passwords
+// Mock users data 
 const users = [
   {
     id: '1',
-    name: 'Dr. Jane Smith',
-    email: 'jane.smith@medical.com',
+    name: 'Dr. Pape Moussa Faye',
+    email: 'fayepapemoussa9@gmail.com',
     password: 'password123',
     role: 'doctor'
   },
   {
     id: '2',
-    name: 'Sarah Johnson',
-    email: 'sarah.johnson@medical.com',
+    name: 'Amadou Diallo',
+    email: 'dialloamadou9@gmail.com',
     password: 'password123',
     role: 'nurse'
   },

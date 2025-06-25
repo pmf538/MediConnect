@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();
 
-// Données de démonstration - dans une vraie application, cela viendrait d'une base de données
+// Données de démonstration 
 let patients = [
   { 
     id: '1', 

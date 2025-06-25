@@ -22,7 +22,7 @@ const MainLayout: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-slate-50">
-      {/* Sidebar */}
+      {/* Barre latérale */}
       <aside 
         className={`bg-white border-r border-slate-200 transition-sidebar ${
           sidebarOpen ? 'w-64' : 'w-20'
@@ -56,7 +56,7 @@ const MainLayout: React.FC = () => {
                 `sidebar-link ${isActive ? 'active' : ''}`
               }>
                 <LayoutDashboard size={20} />
-                {sidebarOpen && <span>Dashboard</span>}
+                {sidebarOpen && <span>Tableau de bord</span>}
               </NavLink>
             </li>
             <li>
@@ -72,7 +72,7 @@ const MainLayout: React.FC = () => {
                 `sidebar-link ${isActive ? 'active' : ''}`
               }>
                 <CalendarClock size={20} />
-                {sidebarOpen && <span>Appointments</span>}
+                {sidebarOpen && <span>Rendez-vous</span>}
               </NavLink>
             </li>
             <li>
@@ -80,7 +80,7 @@ const MainLayout: React.FC = () => {
                 `sidebar-link ${isActive ? 'active' : ''}`
               }>
                 <FileText size={20} />
-                {sidebarOpen && <span>Prescriptions</span>}
+                {sidebarOpen && <span>Ordonnances</span>}
               </NavLink>
             </li>
             <li>
@@ -88,7 +88,7 @@ const MainLayout: React.FC = () => {
                 `sidebar-link ${isActive ? 'active' : ''}`
               }>
                 <Calendar size={20} />
-                {sidebarOpen && <span>Schedule</span>}
+                {sidebarOpen && <span>Planning</span>}
               </NavLink>
             </li>
           </ul>
@@ -122,16 +122,16 @@ const MainLayout: React.FC = () => {
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* Contenu principal */}
       <div className={`flex-1 overflow-auto ${sidebarOpen ? 'ml-64' : 'ml-20'} transition-all`}>
-        {/* Header */}
+        {/* En-tête */}
         <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center w-1/2">
               <div className="relative w-full max-w-md">
                 <input
                   type="text"
-                  placeholder="Search patients, appointments..."
+                  placeholder="Rechercher patients, rendez-vous..."
                   className="pl-10 pr-4 py-2 w-full border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
@@ -143,12 +143,19 @@ const MainLayout: React.FC = () => {
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">3</span>
               </button>
               <div className="h-6 w-px bg-slate-200"></div>
-              <div className="text-sm font-medium">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              <div className="text-sm font-medium">
+                {new Date().toLocaleDateString('fr-FR', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Page content */}
+        {/* Contenu de la page */}
         <main className="p-6">
           <Outlet />
         </main>

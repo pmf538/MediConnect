@@ -26,34 +26,34 @@ const AuthLayout: React.FC = () => {
           </div>
           
           <div className="flex-1 flex flex-col justify-center">
-            <h1 className="text-4xl font-bold mb-6">Modern Medical Practice Management</h1>
-            <p className="text-xl opacity-90 mb-8">Streamline your practice with our comprehensive solution for appointment scheduling, patient management, and prescription handling.</p>
+            <h1 className="text-4xl font-bold mb-6">Gestion moderne de cabinet médical</h1>
+            <p className="text-xl opacity-90 mb-8">Simplifiez votre pratique avec notre solution complète pour la prise de rendez-vous, la gestion des patients et la prescription médicale.</p>
             
             <div className="border border-white/30 rounded-lg p-6 bg-white/10 backdrop-blur-sm">
-              <h3 className="font-semibold text-xl mb-3">Why MediConnect?</h3>
+              <h3 className="font-semibold text-xl mb-3">Pourquoi choisir MediConnect ?</h3>
               <ul className="space-y-2">
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-white"></div>
-                  <span>Intuitive appointment scheduling</span>
+                  <span>Prise de rendez-vous intuitive</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-white"></div>
-                  <span>Comprehensive patient records</span>
+                  <span>Dossiers patients complets</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-white"></div>
-                  <span>Secure prescription management</span>
+                  <span>Gestion sécurisée des ordonnances</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-white"></div>
-                  <span>Optimized practitioner workflows</span>
+                  <span>Optimisation des flux de travail</span>
                 </li>
               </ul>
             </div>
           </div>
           
           <div className="mt-auto text-sm opacity-70">
-            © 2025 MediConnect. All rights reserved.
+            © 2025 MediConnect. Tous droits réservés.
           </div>
         </div>
       </div>
