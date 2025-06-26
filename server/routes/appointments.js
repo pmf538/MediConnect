@@ -3,7 +3,7 @@ import Appointment from '../models/Appointment.js';
 
 const router = express.Router();
 
-// Get all appointments
+// Récupérer tous les rendez-vous
 router.get('/', async (req, res) => {
   try {
     const { date, patientId, doctorId, status } = req.query;
@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get appointment by ID
+// Récupérer un rendez-vous par son ID
 router.get('/:id', async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id);
@@ -33,7 +33,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create new appointment
+// Créer un nouveau rendez-vous
 router.post('/', async (req, res) => {
   try {
     const newAppointment = new Appointment({
@@ -48,7 +48,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Update appointment
+// Mettre à jour un rendez-vous
 router.put('/:id', async (req, res) => {
   try {
     const appointment = await Appointment.findByIdAndUpdate(
@@ -65,7 +65,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Delete appointment
+// Supprimer un rendez-vous
 router.delete('/:id', async (req, res) => {
   try {
     const appointment = await Appointment.findByIdAndDelete(req.params.id);
@@ -78,7 +78,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Check-in patient
+// Enregistrer l'arrivée du patient
 router.post('/:id/check-in', async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id);
@@ -97,7 +97,7 @@ router.post('/:id/check-in', async (req, res) => {
   }
 });
 
-// Complete appointment
+// Marquer un rendez-vous comme terminé
 router.post('/:id/complete', async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id);

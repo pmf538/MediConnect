@@ -45,14 +45,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (token) {
         try {
-          // Pour la démo - en production, vérifier avec le backend
+          
           setUser({
             id: '1',
-            name: 'Pape Moussa Faye',
-            email: 'fayepapemoussa9@gmail.com',
+            name: 'Dr. Amadou Diallo',
+            email: 'dialloamadou9@gmail.com',
             role: 'doctor',
             specialization: 'Médecin Généraliste',
-            phone: '+221 77 123 45 67',
+            phone: '+221 77 123 45 68',
             address: 'Dakar, Sénégal'
           });
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -71,12 +71,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setError(null);
     try {
-      // Pour la démo - en production, utiliser le backend réel
+      
       const token = 'mock-jwt-token';
       const userData = {
         id: '1',
-        name: 'Dr. Amadou Diallo',
-        email: email,
+        name: 'Dr. Pape Moussa Faye',
+        email: 'fayepapemoussa9@gmail.com',
         role: 'doctor',
         specialization: 'Médecin Généraliste',
         phone: '+221 77 123 45 67',
@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (data: Partial<User>) => {
     try {
-      // Pour la démo - en production, mettre à jour via le backend
+      
       setUser(prev => prev ? { ...prev, ...data } : null);
     } catch (err: any) {
       throw new Error(err.response?.data?.message || 'Échec de la mise à jour du profil');
