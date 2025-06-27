@@ -2,6 +2,15 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { body, validationResult } from 'express-validator';
+import mysql from 'mysql2';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const db = require('../index.js').db || require('mysql2').createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'medoc'
+});
 
 const router = express.Router();
 
@@ -31,33 +40,34 @@ router.post('/login',
     }
 
     const { email, password } = req.body;
-    const user = users.find(u => u.email === email);
-    
-    if (!user) {
-      return res.status(401).json({ message: 'Identifiants incorrects' });
-    }
-
-    // Vérification du mot de passe haché
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-      return res.status(401).json({ message: 'Identifiants incorrects' });
-    }
-
-    const token = jwt.sign(
-      { userId: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-
-    res.json({ token });
+    db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
+      if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+      if (results.length === 0) {
+        return res.status(401).json({ message: 'Identifiants incorrects' });
+      }
+      const user = results[0];
+      const match = await bcrypt.compare(password, user.password);
+      if (!match) {
+        return res.status(401).json({ message: 'Identifiants incorrects' });
+      }
+      const token = jwt.sign(
+        { userId: user.id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+      res.json({ token });
+    });
   }
 );
 
 // Route protégée
 router.get('/me', authenticateToken, (req, res) => {
-  const user = users.find(u => u.id === req.user.userId);
-  if (!user) return res.sendStatus(404);
-  
-  const { password, ...safeUser } = user;
-  res.json(safeUser);
+  db.query('SELECT * FROM users WHERE id = ?', [req.user.userId], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+    if (results.length === 0) return res.sendStatus(404);
+    const { password, ...safeUser } = results[0];
+    res.json(safeUser);
+  });
 });
+
+export default router;

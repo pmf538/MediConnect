@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import mongoose from 'mongoose';
+import mysql from 'mysql2';
 
 import patientsRoutes from './routes/patients.js';
 import appointmentsRoutes from './routes/appointments.js';
@@ -25,10 +25,20 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/medoc', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+// Connect to MySQL
+const db = mysql.createConnection({
+  host: 'localhost',
+  user: 'root', // ou votre utilisateur XAMPP
+  password: '', // mot de passe XAMPP (souvent vide par défaut)
+  database: 'mediconnect' // nom de votre base de données
+});
+
+db.connect((err) => {
+  if (err) {
+    console.error('Erreur de connexion à MySQL:', err);
+  } else {
+    console.log('Connecté à la base de données MySQL');
+  }
 });
 
 // Routes

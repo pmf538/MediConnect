@@ -1,97 +1,65 @@
 import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
+import mysql from 'mysql2';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const db = require('../index.js').db || require('mysql2').createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'medoc'
+});
 
 const router = express.Router();
 
-// Données de démonstration 
-let patients = [
-  { 
-    id: '1', 
-    name: 'Fatou Diallo', 
-    dob: '1985-03-15',
-    gender: 'Femme',
-    phone: '77 123 45 67',
-    email: 'fatou.diallo@example.com',
-    address: 'Rue 10, Médina, Dakar',
-    insurance: 'IPM Santé',
-    insuranceNumber: 'IPM-12345-FD',
-    bloodType: 'O+',
-    allergies: ['Pénicilline', 'Arachides'],
-    conditions: ['Asthme', 'Hypertension'],
-    notes: 'Patiente régulière qui suit bien son traitement. Fait de l\'exercice régulièrement.'
-  },
-  { 
-    id: '2', 
-    name: 'Moussa Sow', 
-    dob: '1978-11-02',
-    gender: 'Homme',
-    phone: '76 234 56 78',
-    email: 'moussa.sow@example.com',
-    address: 'Avenue Cheikh Anta Diop, Dakar',
-    insurance: 'IPRES Santé',
-    insuranceNumber: 'IPRES-67890-MS',
-    bloodType: 'A+',
-    allergies: ['Sulfamides'],
-    conditions: ['Diabète Type 2'],
-    notes: 'Patient diabétique bien suivi. Contrôle régulier de sa glycémie.'
-  }
-];
-
 // Get all patients
 router.get('/', (req, res) => {
-  res.json(patients);
+  db.query('SELECT * FROM patients', (err, results) => {
+    if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+    res.json(results);
+  });
 });
 
 // Get patient by ID
 router.get('/:id', (req, res) => {
-  const patient = patients.find(p => p.id === req.params.id);
-  
-  if (!patient) {
-    return res.status(404).json({ message: 'Patient non trouvé' });
-  }
-  
-  res.json(patient);
+  db.query('SELECT * FROM patients WHERE id = ?', [req.params.id], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+    if (results.length === 0) return res.status(404).json({ message: 'Patient non trouvé' });
+    res.json(results[0]);
+  });
 });
 
 // Create new patient
 router.post('/', (req, res) => {
-  const newPatient = {
-    id: uuidv4(),
-    ...req.body,
-    createdAt: new Date().toISOString()
-  };
-  
-  patients.push(newPatient);
-  res.status(201).json(newPatient);
+  const patient = req.body;
+  db.query('INSERT INTO patients SET ?', patient, (err, result) => {
+    if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+    db.query('SELECT * FROM patients WHERE id = ?', [result.insertId], (err2, results2) => {
+      if (err2) return res.status(500).json({ message: 'Erreur serveur', error: err2 });
+      res.status(201).json(results2[0]);
+    });
+  });
 });
 
 // Update patient
 router.put('/:id', (req, res) => {
-  const patientIndex = patients.findIndex(p => p.id === req.params.id);
-  
-  if (patientIndex === -1) {
-    return res.status(404).json({ message: 'Patient non trouvé' });
-  }
-  
-  patients[patientIndex] = {
-    ...patients[patientIndex],
-    ...req.body,
-    updatedAt: new Date().toISOString()
-  };
-  
-  res.json(patients[patientIndex]);
+  db.query('UPDATE patients SET ? WHERE id = ?', [req.body, req.params.id], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Patient non trouvé' });
+    db.query('SELECT * FROM patients WHERE id = ?', [req.params.id], (err2, results2) => {
+      if (err2) return res.status(500).json({ message: 'Erreur serveur', error: err2 });
+      res.json(results2[0]);
+    });
+  });
 });
 
 // Delete patient
 router.delete('/:id', (req, res) => {
-  const patientIndex = patients.findIndex(p => p.id === req.params.id);
-  
-  if (patientIndex === -1) {
-    return res.status(404).json({ message: 'Patient non trouvé' });
-  }
-  
-  patients = patients.filter(p => p.id !== req.params.id);
-  res.json({ message: 'Patient supprimé avec succès' });
+  db.query('DELETE FROM patients WHERE id = ?', [req.params.id], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Patient non trouvé' });
+    res.json({ message: 'Patient supprimé avec succès' });
+  });
 });
 
 export default router;

@@ -1,123 +1,110 @@
 import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
+import mysql from 'mysql2';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const db = require('../index.js').db || require('mysql2').createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'medoc'
+});
 
 const router = express.Router();
 
-// Données de démonstration
-let prescriptions = [
-  { id: '1', patientId: '1', patient: 'Fatou Diallo', medication: 'Ventoline', dosage: '100mcg', frequency: 'En cas de besoin', issued: '2024-11-10', ends: '2025-11-10', status: 'active', doctorId: '1' },
-  { id: '2', patientId: '1', patient: 'Fatou Diallo', medication: 'Amlodipine', dosage: '5mg', frequency: 'Une fois par jour', issued: '2024-11-10', ends: '2025-02-10', status: 'expired', doctorId: '1' },
-  { id: '3', patientId: '1', patient: 'Fatou Diallo', medication: 'Amoxicilline', dosage: '500mg', frequency: 'Trois fois par jour', issued: '2025-01-15', ends: '2025-01-22', status: 'completed', doctorId: '1' },
-  { id: '4', patientId: '2', patient: 'Moussa Sow', medication: 'Metformine', dosage: '500mg', frequency: 'Deux fois par jour', issued: '2025-02-20', ends: '2025-08-20', status: 'active', doctorId: '1' }
-];
-
 // Get all prescriptions
 router.get('/', (req, res) => {
-  // Filter by patientId or status if provided
   const { patientId, status, doctorId } = req.query;
-  
-  let filteredPrescriptions = [...prescriptions];
-  
-  if (patientId) {
-    filteredPrescriptions = filteredPrescriptions.filter(p => p.patientId === patientId);
-  }
-  
-  if (status) {
-    filteredPrescriptions = filteredPrescriptions.filter(p => p.status === status);
-  }
-  
-  if (doctorId) {
-    filteredPrescriptions = filteredPrescriptions.filter(p => p.doctorId === doctorId);
-  }
-  
-  res.json(filteredPrescriptions);
+  let sql = 'SELECT * FROM prescriptions WHERE 1=1';
+  const params = [];
+  if (patientId) { sql += ' AND patientId = ?'; params.push(patientId); }
+  if (status) { sql += ' AND status = ?'; params.push(status); }
+  if (doctorId) { sql += ' AND doctorId = ?'; params.push(doctorId); }
+  db.query(sql, params, (err, results) => {
+    if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+    res.json(results);
+  });
 });
 
 // Get prescription by ID
 router.get('/:id', (req, res) => {
-  const prescription = prescriptions.find(p => p.id === req.params.id);
-  
-  if (!prescription) {
-    return res.status(404).json({ message: 'Ordonnance non trouvée' });
-  }
-  
-  res.json(prescription);
+  db.query('SELECT * FROM prescriptions WHERE id = ?', [req.params.id], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+    if (results.length === 0) return res.status(404).json({ message: 'Ordonnance non trouvée' });
+    res.json(results[0]);
+  });
 });
 
 // Create new prescription
 router.post('/', (req, res) => {
-  const newPrescription = {
-    id: uuidv4(),
+  const prescription = {
     ...req.body,
     issued: new Date().toISOString().split('T')[0],
     status: 'active',
     createdAt: new Date().toISOString()
   };
-  
-  prescriptions.push(newPrescription);
-  res.status(201).json(newPrescription);
+  db.query('INSERT INTO prescriptions SET ?', prescription, (err, result) => {
+    if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+    db.query('SELECT * FROM prescriptions WHERE id = ?', [result.insertId], (err2, results2) => {
+      if (err2) return res.status(500).json({ message: 'Erreur serveur', error: err2 });
+      res.status(201).json(results2[0]);
+    });
+  });
 });
 
 // Update prescription
 router.put('/:id', (req, res) => {
-  const prescriptionIndex = prescriptions.findIndex(p => p.id === req.params.id);
-  
-  if (prescriptionIndex === -1) {
-    return res.status(404).json({ message: 'Ordonnance non trouvée' });
-  }
-  
-  prescriptions[prescriptionIndex] = {
-    ...prescriptions[prescriptionIndex],
-    ...req.body,
-    updatedAt: new Date().toISOString()
-  };
-  
-  res.json(prescriptions[prescriptionIndex]);
+  db.query('UPDATE prescriptions SET ? WHERE id = ?', [req.body, req.params.id], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Ordonnance non trouvée' });
+    db.query('SELECT * FROM prescriptions WHERE id = ?', [req.params.id], (err2, results2) => {
+      if (err2) return res.status(500).json({ message: 'Erreur serveur', error: err2 });
+      res.json(results2[0]);
+    });
+  });
 });
 
 // Mark prescription as expired
 router.post('/:id/expire', (req, res) => {
-  const prescriptionIndex = prescriptions.findIndex(p => p.id === req.params.id);
-  
-  if (prescriptionIndex === -1) {
-    return res.status(404).json({ message: 'Ordonnance non trouvée' });
-  }
-  
-  prescriptions[prescriptionIndex].status = 'expired';
-  prescriptions[prescriptionIndex].endedAt = new Date().toISOString();
-  
-  res.json(prescriptions[prescriptionIndex]);
+  db.query('UPDATE prescriptions SET status = ?, endedAt = ? WHERE id = ?', ['expired', new Date().toISOString(), req.params.id], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Ordonnance non trouvée' });
+    db.query('SELECT * FROM prescriptions WHERE id = ?', [req.params.id], (err2, results2) => {
+      if (err2) return res.status(500).json({ message: 'Erreur serveur', error: err2 });
+      res.json(results2[0]);
+    });
+  });
 });
 
 // Renew prescription
 router.post('/:id/renew', (req, res) => {
-  const prescription = prescriptions.find(p => p.id === req.params.id);
-  
-  if (!prescription) {
-    return res.status(404).json({ message: 'Ordonnance non trouvée' });
-  }
-  
-  // Create a new prescription based on the old one
-  const renewalDate = new Date().toISOString().split('T')[0];
-  const expiryDate = req.body.ends || new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString().split('T')[0];
-  
-  const newPrescription = {
-    id: uuidv4(),
-    patientId: prescription.patientId,
-    patient: prescription.patient,
-    medication: prescription.medication,
-    dosage: prescription.dosage,
-    frequency: prescription.frequency,
-    issued: renewalDate,
-    ends: expiryDate,
-    status: 'active',
-    doctorId: prescription.doctorId,
-    renewedFromId: prescription.id,
-    createdAt: new Date().toISOString()
-  };
-  
-  prescriptions.push(newPrescription);
-  res.status(201).json(newPrescription);
+  db.query('SELECT * FROM prescriptions WHERE id = ?', [req.params.id], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+    if (results.length === 0) return res.status(404).json({ message: 'Ordonnance non trouvée' });
+    const prescription = results[0];
+    const renewalDate = new Date().toISOString().split('T')[0];
+    const expiryDate = req.body.ends || new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString().split('T')[0];
+    const newPrescription = {
+      patientId: prescription.patientId,
+      patient: prescription.patient,
+      medication: prescription.medication,
+      dosage: prescription.dosage,
+      frequency: prescription.frequency,
+      issued: renewalDate,
+      ends: expiryDate,
+      status: 'active',
+      doctorId: prescription.doctorId,
+      renewedFromId: prescription.id,
+      createdAt: new Date().toISOString()
+    };
+    db.query('INSERT INTO prescriptions SET ?', newPrescription, (err2, result2) => {
+      if (err2) return res.status(500).json({ message: 'Erreur serveur', error: err2 });
+      db.query('SELECT * FROM prescriptions WHERE id = ?', [result2.insertId], (err3, results3) => {
+        if (err3) return res.status(500).json({ message: 'Erreur serveur', error: err3 });
+        res.status(201).json(results3[0]);
+      });
+    });
+  });
 });
 
 export default router;
